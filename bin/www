@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('notificaciones:server');
+var http = require('http');
+
+var config= require('../config.json');
+var connectionString = "postgres://"+config.postgres.user+":"+config.postgres.password+"@"+config.postgres.host+"/"+config.postgres.db;
+
+var pgp   = require("pg-promise")(/*options*/);
+var db = pgp(connectionString);
+
+db.one("SELECT usuarios AS value", 123)
+    .then(function (data) {
+        console.log("DATA:", data.value);
+    })
+    .catch(function (error) {
+        console.log("ERROR:", error);
+    });
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+console.log(connectionString);
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/** prueba de IO */
+var io = require('socket.io')(server); 
+
+var messages = [{  
+    author: "Carlos",
+    text: "Hola! que tal?"
+},{
+    author: "Pepe",
+    text: "Muy bien! y tu??"
+},{
+    author: "Paco",
+    text: "Genial!"
+}];
+
+io.on('connection', function(socket) {  
+    console.log('Un cliente se ha conectado');
+    socket.emit('messages', messages);
+
+    socket.on('new-message', function(data) {  
+    messages.push(data);
+
+    io.sockets.emit('messages', messages);
+    });
+});
+
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}

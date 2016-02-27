@@ -1,0 +1,9 @@
+{
+  
+    "postgres": {
+        "db"       : "node_prueba",
+        "user"     : "admin",
+        "password" : "admin",
+        "host"     : "localhost"
+    }
+}

@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src='/javascripts/socket.io.js')
+    script(src='/javascripts/main_cliente.js')
+
+
+  body
+    block content
+    <div id="messages"></div>  
+    <form onsubmit="return addMessage(this)">  
+    <input type="text" id="username" placeholder="Tu Nombre" >
+    <input type="text" id="texto" placeholder="Cuéntanos algo...">
+    <input type="submit" value="Enviar!">
+    </form>  
