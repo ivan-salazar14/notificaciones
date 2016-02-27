@@ -14,9 +14,22 @@ var connectionString = "postgres://"+config.postgres.user+":"+config.postgres.pa
 var pgp   = require("pg-promise")(/*options*/);
 var db = pgp(connectionString);
 
-db.one("SELECT usuarios AS value", 123)
+
+var messages;/* = [{  
+    author: "Carlos",
+    text: "Hola! que tal?"
+},{
+    author: "Pepe",
+    text: "Muy bien! y tu??"
+},{
+    author: "Paco",
+    text: "Genial!"
+}];*/
+
+db.query("SELECT author,text from mensajes")
     .then(function (data) {
-        console.log("DATA:", data.value);
+        console.log("DATA:", data);
+      messages=data;
     })
     .catch(function (error) {
         console.log("ERROR:", error);
@@ -29,7 +42,7 @@ db.one("SELECT usuarios AS value", 123)
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-console.log(connectionString);
+//console.log(messages);
 /**
  * Create HTTP server.
  */
@@ -47,24 +60,21 @@ server.on('listening', onListening);
 /** prueba de IO */
 var io = require('socket.io')(server); 
 
-var messages = [{  
-    author: "Carlos",
-    text: "Hola! que tal?"
-},{
-    author: "Pepe",
-    text: "Muy bien! y tu??"
-},{
-    author: "Paco",
-    text: "Genial!"
-}];
 
 io.on('connection', function(socket) {  
     console.log('Un cliente se ha conectado');
     socket.emit('messages', messages);
 
     socket.on('new-message', function(data) {  
-    messages.push(data);
-
+   
+    db.query("INSERT INTO mensajes (usuario_id,mensaje_id,author,text) values (1,5,$1,$2)",['aa','ddd'])
+      .then(function (data) {
+          messages.push(data);
+      })
+      .catch(function (error) {
+          console.log("ERROR:", error);
+      });
+      
     io.sockets.emit('messages', messages);
     });
 });
